@@ -7,7 +7,6 @@ import random
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 
-# --- Константы ---
 STATS_FILE = Path("stats.json")
 SYMBOLS: List[str] = ['1', '2', '3', '4', '5', 'A', 'B', 'C', 'D', 'E']
 EMOJIS: List[str] = ['😀', '🐱', '🚗', '🍎', '🌟']
@@ -15,7 +14,6 @@ REACTION_THRESHOLDS: Dict[int, float] = {1: 1.5, 2: 1.3, 3: 1.1, 4: 0.9}
 MAX_LEVEL: int = 10
 
 
-# --- Утилиты работы с данными ---
 def load_stats() -> Dict[str, Any]:
     if not STATS_FILE.exists():
         return {}
@@ -36,8 +34,6 @@ def save_stats(stats: Dict[str, Any]) -> bool:
         messagebox.showerror("Ошибка сохранения", f"Не удалось записать данные:\n{e}")
         return False
 
-
-# --- Экран: СТАРТ ---
 class StartScreen(tk.Frame):
     def __init__(self, master: tk.Tk, **kwargs: Any) -> None:
         super().__init__(master, **kwargs)
@@ -47,7 +43,7 @@ class StartScreen(tk.Frame):
     def _build_ui(self) -> None:
         self.configure(bg="#f0f4f8")
 
-        tk.Label(self, text="Добро пожаловать!", font=("Segoe UI", 26, "bold"),
+        tk.Label(self, text="MozgON", font=("Segoe UI", 26, "bold"),
                  bg="#f0f4f8", fg="#2c3e50").pack(pady=(40, 20))
 
         self.nick_var = tk.StringVar()
@@ -85,13 +81,12 @@ class StartScreen(tk.Frame):
         self.master_app.switch_to_game(nick, mode, stats[nick].copy())
 
 
-# --- Экран: ИГРА ---
 class GameScreen(tk.Frame):
     def __init__(self, master: tk.Tk, **kwargs: Any) -> None:
         super().__init__(master, **kwargs)
         self.master_app = master
         self.user_nick: Optional[str] = None
-        self.user_data: Optional[Dict[str, Any]] = None  # ✅ Исправлено
+        self.user_data: Optional[Dict[str, Any]] = None 
         self.reaction_start_time: Optional[float] = None
         self.current_game: Optional[str] = None
         self._build_ui()
@@ -132,7 +127,7 @@ class GameScreen(tk.Frame):
             w.destroy()
 
     def show_stats(self) -> None:
-        if not self.user_data:  # ✅ Исправлено
+        if not self.user_data:  
             return
         mode_text = "👴 Пожилой" if self.user_data['mode'] == 'elderly' else "👶 Ребёнок"
         lvl = self.user_data['reaction_level']
@@ -146,13 +141,12 @@ class GameScreen(tk.Frame):
                f"🎮 Игр сыграно: {self.user_data.get('games_played', 0)}")
         messagebox.showinfo("Статистика", msg)
 
-    # --- ПАМЯТЬ ---
     def start_memory_game(self) -> None:
         self.current_game = 'memory'
         self.master_app.cancel_jobs()
         self.clear_game_area()
 
-        if not self.user_data:  # ✅ Исправлено
+        if not self.user_data:  
             return
         lvl = self.user_data['memory_level']
         symbols = SYMBOLS if self.user_data['mode'] == 'elderly' else EMOJIS
@@ -182,7 +176,7 @@ class GameScreen(tk.Frame):
 
     def check_memory_answer(self, correct: List[str], answer: str) -> None:
         correct_str = " ".join(correct)
-        if not self.user_data:  # ✅ Исправлено
+        if not self.user_data: 
             return
 
         if answer == correct_str:
@@ -198,7 +192,6 @@ class GameScreen(tk.Frame):
             messagebox.showwarning("Результат", msg)
             self.master_app.schedule(1500, self.start_memory_game)
 
-    # --- РЕАКЦИЯ ---
     def start_reaction_game(self) -> None:
         self.current_game = 'reaction'
         self.master_app.cancel_jobs()
@@ -221,7 +214,7 @@ class GameScreen(tk.Frame):
         btn.focus_set()
 
     def finish_reaction(self) -> None:
-        if self.reaction_start_time is None or not self.user_data:  # ✅ Исправлено
+        if self.reaction_start_time is None or not self.user_data:  
             return
 
         reaction_time = time.time() - self.reaction_start_time
@@ -243,11 +236,10 @@ class GameScreen(tk.Frame):
             self.master_app.schedule(1000, self.start_reaction_game)
 
 
-# --- Главное приложение ---
 class BrainTrainerApp(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
-        self.title("🧠⚡ Тренировка мозга")
+        self.title("🧠⚡ MozgON")
         self.geometry("550x700")
         self.resizable(False, False)
         self.configure(bg="#f0f4f8")
@@ -272,8 +264,8 @@ class BrainTrainerApp(tk.Tk):
 
     def switch_to_start(self) -> None:
         self.cancel_jobs()
-        # Сохраняем прогресс при выходе
-        if self.game_screen.user_nick and self.game_screen.user_data:  # ✅ Исправлено
+ 
+        if self.game_screen.user_nick and self.game_screen.user_data:  
             stats = load_stats()
             if self.game_screen.user_nick in stats:
                 stats[self.game_screen.user_nick].update(self.game_screen.user_data)
@@ -294,7 +286,5 @@ class BrainTrainerApp(tk.Tk):
             self.after_cancel(job)
         self._pending_jobs.clear()
 
-
-# Запуск приложения
 app = BrainTrainerApp()
 app.mainloop()
